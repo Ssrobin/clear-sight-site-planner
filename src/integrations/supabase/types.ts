@@ -134,6 +134,7 @@ export type Database = {
           status: string
           subtotal: number
           total: number
+          transaction_ref: string | null
         }
         Insert: {
           address: string
@@ -153,6 +154,7 @@ export type Database = {
           status?: string
           subtotal?: number
           total?: number
+          transaction_ref?: string | null
         }
         Update: {
           address?: string
@@ -172,6 +174,7 @@ export type Database = {
           status?: string
           subtotal?: number
           total?: number
+          transaction_ref?: string | null
         }
         Relationships: []
       }
@@ -234,42 +237,51 @@ export type Database = {
       }
       site_settings: {
         Row: {
+          account_title: string
           address: string
           announcement: string
           delivery_fee: number
+          easypaisa_number: string
           email: string
           hero_image_path: string | null
           hero_subtitle: string
           hero_title: string
           id: number
+          jazzcash_number: string
           opening_hours: string
           phone: string
           updated_at: string
           whatsapp: string
         }
         Insert: {
+          account_title?: string
           address?: string
           announcement?: string
           delivery_fee?: number
+          easypaisa_number?: string
           email?: string
           hero_image_path?: string | null
           hero_subtitle?: string
           hero_title?: string
           id?: number
+          jazzcash_number?: string
           opening_hours?: string
           phone?: string
           updated_at?: string
           whatsapp?: string
         }
         Update: {
+          account_title?: string
           address?: string
           announcement?: string
           delivery_fee?: number
+          easypaisa_number?: string
           email?: string
           hero_image_path?: string | null
           hero_subtitle?: string
           hero_title?: string
           id?: number
+          jazzcash_number?: string
           opening_hours?: string
           phone?: string
           updated_at?: string
@@ -327,6 +339,7 @@ export type Database = {
           _phone: string
           _prescription_notes: string
           _prescription_path: string
+          _transaction_ref: string
         }
         Returns: Json
       }
