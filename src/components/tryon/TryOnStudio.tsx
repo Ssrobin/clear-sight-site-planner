@@ -20,16 +20,17 @@ const WASM = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.2.3/wasm";
 const MODEL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
 const DEFAULT_FIT: Fit = { x: 0.5, y: 0.42, w: 0.5, angle: 0 };
 
-function fitFromLandmarks(pts: { x: number; y: number }[], aspect: number): Fit {
+function fitFromLandmarks(pts: { x: number; y: number }[], aspect: number): Fit | null {
   const a = pts[33];
   const b = pts[263];
+  if (!a || !b) return null;
   const dx = (b.x - a.x) * aspect;
   const dy = b.y - a.y;
   const dist = Math.hypot(dx, dy) / aspect;
   return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 + dist * 0.04, w: dist * 1.55, angle: (Math.atan2(dy, dx) * 180) / Math.PI };
 }
 
-export function TryOnStudio({ frames, initialId }: { frames: Product[]; initialId?: string }) {
+export function TryOnStudio({ frames, initialId }: { frames: Product[]; initialId?: string | undefined }) {
   const [selected, setSelected] = useState<Product | undefined>(frames.find((f) => f.id === initialId) ?? frames[0]);
   const [mode, setMode] = useState<"idle" | "camera" | "photo">("idle");
   const [photo, setPhoto] = useState<string | null>(null);
@@ -90,7 +91,7 @@ export function TryOnStudio({ frames, initialId }: { frames: Product[]; initialI
         const pts = r.faceLandmarks?.[0];
         if (pts) {
           const next = fitFromLandmarks(pts, v.videoWidth / v.videoHeight);
-          setFit((prev) => ({
+          if (next) setFit((prev) => ({
             x: prev.x + (next.x - prev.x) * 0.5,
             y: prev.y + (next.y - prev.y) * 0.5,
             w: prev.w + (next.w - prev.w) * 0.5,
@@ -147,7 +148,8 @@ export function TryOnStudio({ frames, initialId }: { frames: Product[]; initialI
       await lm.setOptions({ runningMode: "IMAGE" });
       const r = lm.detect(img);
       const pts = r.faceLandmarks?.[0];
-      if (pts) setFit(fitFromLandmarks(pts, img.naturalWidth / img.naturalHeight));
+      const next = pts ? fitFromLandmarks(pts, img.naturalWidth / img.naturalHeight) : null;
+      if (next) setFit(next);
       else toast("No face found — use the sliders to place the frame.");
     } catch {
       /* manual */
@@ -200,11 +202,11 @@ export function TryOnStudio({ frames, initialId }: { frames: Product[]; initialI
           <div className="mt-4 grid gap-4 rounded-2xl border bg-card p-4 sm:grid-cols-[1fr_1fr_auto] sm:items-center">
             <label className="grid gap-2 text-xs font-medium text-muted-foreground">
               Frame size
-              <Slider value={[scale]} min={0.7} max={1.4} step={0.01} onValueChange={(v) => setScale(v[0])} />
+              <Slider value={[scale]} min={0.7} max={1.4} step={0.01} onValueChange={(v) => setScale(v[0] ?? 1)} />
             </label>
             <label className="grid gap-2 text-xs font-medium text-muted-foreground">
               Move up / down
-              <Slider value={[lift]} min={-15} max={15} step={0.5} onValueChange={(v) => setLift(v[0])} />
+              <Slider value={[lift]} min={-15} max={15} step={0.5} onValueChange={(v) => setLift(v[0] ?? 0)} />
             </label>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" className="rounded-full" onClick={mode === "camera" ? () => fileRef.current?.click() : startCamera}>

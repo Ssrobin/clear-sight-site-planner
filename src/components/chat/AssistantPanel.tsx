@@ -67,7 +67,7 @@ export function AssistantPanel() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-3 border-b px-4 py-3">
+      <div className="flex items-center gap-3 border-b py-3 pl-4 pr-14">
         <img src={assistantAvatar} alt="" className="h-10 w-10 rounded-full" />
         <div className="flex-1">
           <p className="font-display text-sm font-semibold">Opti · AI Assistant</p>

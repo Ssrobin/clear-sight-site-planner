@@ -27,9 +27,9 @@ const TIMES = ["11:00 am", "12:30 pm", "2:00 pm", "3:30 pm", "5:00 pm", "6:30 pm
 
 function Book() {
   const today = new Date().toISOString().slice(0, 10);
-  const [service, setService] = useState(SERVICE_OPTIONS[0]);
+  const [service, setService] = useState<string>("Eye examination");
   const [date, setDate] = useState(today);
-  const [time, setTime] = useState(TIMES[2]);
+  const [time, setTime] = useState<string>("2:00 pm");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [notes, setNotes] = useState("");

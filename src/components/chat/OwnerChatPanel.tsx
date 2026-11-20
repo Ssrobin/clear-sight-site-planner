@@ -23,7 +23,7 @@ export function OwnerChatPanel() {
   const [session, setSession] = useState<Session | null>(() => (typeof window === "undefined" ? null : readSession()));
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-3 border-b px-4 py-3">
+      <div className="flex items-center gap-3 border-b py-3 pl-4 pr-14">
         <span className="flex h-10 w-10 items-center justify-center rounded-full bg-highlight text-highlight-foreground">
           <Store className="h-5 w-5" />
         </span>
