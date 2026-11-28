@@ -2,14 +2,9 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { createClient } from "@supabase/supabase-js";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import type { Database } from "@/integrations/supabase/types";
-import {
-  createLovableAiGatewayRunIdFetch,
-  getLovableAiGatewayRunId,
-  withLovableAiGatewayRunIdHeader,
-} from "./run-id.server";
 
-const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1";
-const MODEL = "openai/gpt-6-astra";
+const GEMINI_BASE_URL = "https://googleapis.com";
+const MODEL = "gemini-2.5-flash";
 
 function publicClient() {
   const key = process.env["SUPABASE_PUBLISHABLE_KEY"]!;
@@ -62,7 +57,7 @@ ${catalog}`;
 }
 
 export async function handleChat(request: Request) {
-  const apiKey = process.env["LOVABLE_API_KEY"];
+  const apiKey = process.env["GEMINI_API_KEY"];
   if (!apiKey) return Response.json({ error: "AI assistant is not configured" }, { status: 500 });
 
   let messages: UIMessage[];
@@ -75,42 +70,25 @@ export async function handleChat(request: Request) {
   }
 
   const instructions = await buildInstructions();
-  const runIdFetch = createLovableAiGatewayRunIdFetch(getLovableAiGatewayRunId(request));
   const provider = createOpenAI({
-    baseURL: GATEWAY_URL,
+    baseURL: GEMINI_BASE_URL,
     apiKey,
-    headers: { "Lovable-API-Key": apiKey, "X-Lovable-AIG-SDK": "vercel-ai-sdk" },
-    fetch: runIdFetch.fetch,
   });
 
   const result = streamText({
-    model: provider.responses(MODEL),
-    instructions,
+    model: provider.chat(MODEL),
+    system: instructions,
     messages: await convertToModelMessages(messages),
     abortSignal: request.signal,
-    providerOptions: {
-      openai: {
-        forceReasoning: true,
-        reasoningEffort: "low",
-        reasoningSummary: "auto",
-        store: false,
-        include: ["reasoning.encrypted_content"],
-      },
-    },
   });
 
-  return withLovableAiGatewayRunIdHeader(
-    result.toUIMessageStreamResponse({
-      originalMessages: messages,
-      sendReasoning: false,
-      onError: (error) => {
-        console.error("assistant stream error", error);
-        const status = (error as { statusCode?: number })?.statusCode;
-        if (status === 429) return "Too many questions right now — please wait a moment and try again.";
-        if (status === 402) return "The assistant is unavailable right now. Please use “Chat with owner” instead.";
-        return "Sorry, something went wrong. Please try again.";
-      },
-    }),
-    runIdFetch,
-  );
+  return result.toUIMessageStreamResponse({
+    originalMessages: messages,
+    onError: (error) => {
+      console.error("assistant stream error", error);
+      const status = (error as { statusCode?: number })?.statusCode;
+      if (status === 429) return "Too many questions right now — please wait a moment and try again.";
+      return "Sorry, something went wrong. Please try again.";
+    },
+  });
 }
