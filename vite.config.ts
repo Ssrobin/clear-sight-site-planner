@@ -15,8 +15,9 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    preview: {
+      allowedHosts: true,
+    },
+  },
 });
-preview: {
-  allowedHosts: true,
-},
-
